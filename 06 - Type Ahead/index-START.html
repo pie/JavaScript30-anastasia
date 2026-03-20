@@ -16,7 +16,24 @@
     </ul>
   </form>
 <script>
+/* The endpoint is a JSON file that contains an array of city objects. Each city object has a city name, state name, population, and other properties. */
 const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+
+/* Empty array to hold the city data that we will fetch from the endpoint. */
+const cities = [];
+
+/* Fetch the data from the endpoint:
+ * The fetch() function is used to make a network request to the endpoint.
+ * It returns a promise that resolves to a Response object.
+ * We then call the json() method on the Response object to parse the response body as JSON.
+ * This also returns a promise that resolves to the parsed data.
+ * Finally, we use the spread operator to push all the city objects from the parsed data into the cities array.
+ * Note: We use the spread operator instead of just pushing the data array because we want to push each city object individually into the cities array, rather than pushing the entire data array as a single element.
+ */
+fetch( endpoint )
+  .then( response => response.json() )
+  .then( data => cities.push( ...data ) );
+
 
 </script>
 </body>
