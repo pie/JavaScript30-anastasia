@@ -34,7 +34,30 @@ fetch( endpoint )
   .then( response => response.json() )
   .then( data => cities.push( ...data ) );
 
+/**
+ * The findMatches function takes a word to match and an array of cities as arguments. It returns an array of cities that match the word to match.
+ * The function uses the filter() method to create a new array of cities that match the word to match. The filter() method takes a callback function that is called for each city in the cities
+ * array. The callback function creates a regular expression using the word to match and checks if the city name or state name matches the regular expression. If either the city name or state name matches, the city is included in the new array of matching cities.
+ *
+ * @param {string} wordToMatch - The word that we want to match against the city and state names.
+ * @param {Array} cities - The array of city objects that we want to search through.
+ * @returns {Array} An array of city objects that match the word to match.
+ */
+function findMatches( wordToMatch, cities ) {
+  // We use the filter() method to create a new array of cities that match the wordToMatch.
+  return cities.filter( place => {
+    // Create a regular expression using the wordToMatch.
+    // The 'g' flag is for global search, and the 'i' flag is for case-insensitive search.
+    // We do this because we want to find all matches of the wordToMatch in the city and state names, regardless of case.
+    const regex = new RegExp( wordToMatch, 'gi' );
+  
+    // We use the match() method to check if the city name or state name matches the regular expression.
+    // The || operator short-circuits: if place.city.match() is truthy, place.state.match() is never evaluated.
+    // This is more efficient than storing both results in variables first, which would force both .match() calls to always run.
+    return place.city.match( regex ) || place.state.match( regex );
 
+  } );
+}
 </script>
 </body>
 </html>
