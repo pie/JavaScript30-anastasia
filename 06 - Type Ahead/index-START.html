@@ -58,6 +58,67 @@ function findMatches( wordToMatch, cities ) {
 
   } );
 }
+
+/**
+ * The numberWithCommas function takes a number as an argument and returns a string with the number formatted with commas as thousands separators.
+ * For example, if the input is 1234567, the output will be "1,234,567".
+ * This function is used to format the population numbers in the suggestions list.
+ * 
+ * @param {number} x - The number that we want to format with commas.
+ * @returns {string} A string representation of the number with commas as thousands separators.
+ */
+function numberWithCommas(x) {
+    x = x.toString();
+    var pattern = /(-?\d+)(\d{3})/;
+    while (pattern.test(x))
+        x = x.replace(pattern, "$1,$2");
+    return x;
+}
+
+/**
+ * When the user types in the search input, we want to display the matching cities and states in the suggestions list.
+ * The displayMatches function calls the findMatches function to get an array of matching cities.
+ * 
+ */
+function displayMatches() {
+  // We call the findMatches function, passing in the current value of the search input (this.value) and the cities array.
+  // The findMatches function returns an array of matching cities, which we store in the matchArray variable.
+  const matchArray = findMatches( this.value, cities );
+  
+  // Display the matching cities and states in the suggestions list.
+  // We use the map() method to create an array of HTML strings for each matching city.
+  const html = matchArray.map( place => {
+    // We create a regular expression using the current value of the search input, just like we did in the findMatches function.
+    // This is because we want to highlight the matching text in the city and state names.
+    const regex = new RegExp( this.value, 'gi' );
+
+    // We use the replace() method to replace the matching text in the city and state names with a span element that has the class 'hl' (for highlight).
+    const cityName = place.city.replace( regex, `<span class="hl">${ this.value }</span>` );
+    const stateName = place.state.replace( regex, `<span class="hl">${ this.value }</span>` );
+
+    return `
+      <li>
+        <span class="name">${ cityName }, ${ stateName }</span>
+        <span class="population">${ numberWithCommas(place.population) }</span>
+      </li>
+    `;
+  }).join( '' ); // We use the join() method to join the array of HTML strings into a single string, which we can then set as the innerHTML of the suggestions list.
+
+  // We set the innerHTML of the suggestions list to the HTML string we created.
+  suggestions.innerHTML = html;
+}
+
+// We select the search input and suggestions list from the DOM.
+const searchInput = document.querySelector( '.search' );
+const suggestions = document.querySelector( '.suggestions' );
+
+// We add an event listener to the search input that listens for the 'change' event.
+// When the 'change' event is fired, the displayMatches function is called.
+searchInput.addEventListener( 'change', displayMatches );
+
+// The 'change' event only fires when we click outside the input field after changing its value.
+// To make the search more responsive, we also listen for the 'keyup' event, which fires every time a key is released while the input field is focused.
+searchInput.addEventListener( 'keyup', displayMatches );
 </script>
 </body>
 </html>
