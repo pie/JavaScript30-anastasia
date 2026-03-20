@@ -108,7 +108,7 @@
         // If the input is empty, restore the default placeholder suggestions and stop.
         // Without this guard, new RegExp('', 'gi') matches between every character and wraps
         // every gap in the city/state names with a highlight <span>, producing broken output.
-        if ( !this.value.trim() ) {
+        if ( '' === this.value.trim() ) {
           suggestions.innerHTML =
             '<li>Filter for a city</li><li>or a state</li>';
           return;
