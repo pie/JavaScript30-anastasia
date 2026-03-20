@@ -30,9 +30,9 @@
        * Finally, we use the spread operator to push all the city objects from the parsed data into the cities array.
        * Note: We use the spread operator instead of just pushing the data array because we want to push each city object individually into the cities array, rather than pushing the entire data array as a single element.
        */
-      fetch(endpoint)
-        .then((response) => response.json())
-        .then((data) => cities.push(...data));
+      fetch( endpoint )
+        .then( ( response ) => response.json() )
+        .then( ( data ) => cities.push( ...data ) );
 
       /**
        * The findMatches function takes a word to match and an array of cities as arguments. It returns an array of cities that match the word to match.
