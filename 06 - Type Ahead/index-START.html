@@ -36,20 +36,22 @@ fetch( endpoint )
 
 /**
  * The findMatches function takes a word to match and an array of cities as arguments. It returns an array of cities that match the word to match.
- * The function uses the filter() method to create a new array of cities that match the word to match. The filter() method takes a callback function that is called for each city in the cities
+ * The function uses the filter() method to create a new array of cities that match the word to match. The filter() method takes a callback function that is called for each city in the cityList
  * array. The callback function creates a regular expression using the word to match and checks if the city name or state name matches the regular expression. If either the city name or state name matches, the city is included in the new array of matching cities.
  *
  * @param {string} wordToMatch - The word that we want to match against the city and state names.
- * @param {Array} cities - The array of city objects that we want to search through.
+ * @param {Array} cityList - The array of city objects that we want to search through.
  * @returns {Array} An array of city objects that match the word to match.
  */
-function findMatches( wordToMatch, cities ) {
+function findMatches( wordToMatch, cityList ) {
   // We use the filter() method to create a new array of cities that match the wordToMatch.
-  return cities.filter( place => {
+  return cityList.filter( place => {
     // Create a regular expression using the wordToMatch.
     // The 'g' flag is for global search, and the 'i' flag is for case-insensitive search.
     // We do this because we want to find all matches of the wordToMatch in the city and state names, regardless of case.
-    const regex = new RegExp( wordToMatch, 'gi' );
+    // We first escape any special characters in the wordToMatch using a regular expression, so that they are treated as literal characters in the regular expression.
+    const escaped = wordToMatch.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+    const regex = new RegExp( escaped, 'gi' );
   
     // We use the match() method to check if the city name or state name matches the regular expression.
     // The || operator short-circuits: if place.city.match() is truthy, place.state.match() is never evaluated.
@@ -69,32 +71,67 @@ function findMatches( wordToMatch, cities ) {
  */
 function numberWithCommas(x) {
     x = x.toString();
-    var pattern = /(-?\d+)(\d{3})/;
-    while (pattern.test(x))
+
+    const pattern = /(-?\d+)(\d{3})/;
+
+    while (pattern.test(x)) {
         x = x.replace(pattern, "$1,$2");
+    };
+
     return x;
+}
+
+/**
+ *  Escapes HTML special characters in a string to prevent XSS when inserting into innerHTML.
+ * Any character that the browser could interpret as HTML markup is replaced with its safe entity equivalent.
+ *
+ * @param {string} str - The string to escape.
+ * @returns {string} The escaped string, safe for insertion into HTML.
+ */
+function escapeHtml( str ) {
+  return str
+    .replace( /&/g, '&amp;' )
+    .replace( /</g, '&lt;' )
+    .replace( />/g, '&gt;' )
+    .replace( /"/g, '&quot;' );
 }
 
 /**
  * When the user types in the search input, we want to display the matching cities and states in the suggestions list.
  * The displayMatches function calls the findMatches function to get an array of matching cities.
+ * It then uses the map() method to create an array of HTML strings for each matching city, which includes the city name, state name, and population.
+ * Finally, it sets the innerHTML of the suggestions list to the HTML string we created.
+ * We also escape any special characters in the user's input and the city/state names to prevent X
  * 
+ * @returns {void} This function does not return anything. It updates the DOM directly by setting the innerHTML of the suggestions list.
  */
 function displayMatches() {
+  // If the input is empty, restore the default placeholder suggestions and stop.
+  // Without this guard, new RegExp('', 'gi') matches between every character and wraps
+  // every gap in the city/state names with a highlight <span>, producing broken output.
+  if ( !this.value.trim() ) {
+    suggestions.innerHTML = '<li>Filter for a city</li><li>or a state</li>';
+    return;
+  }
+
   // We call the findMatches function, passing in the current value of the search input (this.value) and the cities array.
   // The findMatches function returns an array of matching cities, which we store in the matchArray variable.
   const matchArray = findMatches( this.value, cities );
-  
+
   // Display the matching cities and states in the suggestions list.
   // We use the map() method to create an array of HTML strings for each matching city.
   const html = matchArray.map( place => {
-    // We create a regular expression using the current value of the search input, just like we did in the findMatches function.
-    // This is because we want to highlight the matching text in the city and state names.
-    const regex = new RegExp( this.value, 'gi' );
+    // Escape special regex characters in the user's input before building the RegExp,
+    // and escape HTML special characters before inserting it into the <span> to prevent XSS.
+    const escaped = this.value.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+    const regex = new RegExp( escaped, 'gi' );
+    const safeInput = escapeHtml( this.value );
 
-    // We use the replace() method to replace the matching text in the city and state names with a span element that has the class 'hl' (for highlight).
-    const cityName = place.city.replace( regex, `<span class="hl">${ this.value }</span>` );
-    const stateName = place.state.replace( regex, `<span class="hl">${ this.value }</span>` );
+    // Escape the city and state names from the remote data before inserting into HTML,
+    // then highlight the matching text by wrapping it in a <span class="hl">.
+    // We escape first so the regex runs on safe text, not raw HTML-dangerous characters.
+    const cityName = escapeHtml( place.city ).replace( regex, `<span class="hl">${ safeInput }</span>` );
+    const stateName = escapeHtml( place.state ).replace( regex, `<span class="hl">${ safeInput }</span>` );
 
     return `
       <li>
@@ -117,8 +154,8 @@ const suggestions = document.querySelector( '.suggestions' );
 searchInput.addEventListener( 'change', displayMatches );
 
 // The 'change' event only fires when we click outside the input field after changing its value.
-// To make the search more responsive, we also listen for the 'keyup' event, which fires every time a key is released while the input field is focused.
-searchInput.addEventListener( 'keyup', displayMatches );
+// To make the search more responsive and handle all kinds of input (typing, paste, autofill, etc.),
+searchInput.addEventListener( 'input', displayMatches );
 </script>
 </body>
 </html>
