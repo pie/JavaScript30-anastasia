@@ -1,23 +1,155 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Type Ahead 👀</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="https://fav.farm/🔥" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Type Ahead 👀</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="https://fav.farm/🔥" />
+  </head>
+  <body>
+    <form class="search-form">
+      <input type="text" class="search" placeholder="City or State" />
+      <ul class="suggestions">
+        <li>Filter for a city</li>
+        <li>or a state</li>
+      </ul>
+    </form>
+    <script>
+      /* The endpoint is a JSON file that contains an array of city objects. Each city object has a city name, state name, population, and other properties. */
+      const endpoint =
+        'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
 
-  <form class="search-form">
-    <input type="text" class="search" placeholder="City or State">
-    <ul class="suggestions">
-      <li>Filter for a city</li>
-      <li>or a state</li>
-    </ul>
-  </form>
-<script>
-const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+      /* Empty array to hold the city data that we will fetch from the endpoint. */
+      const cities = [];
 
-</script>
-</body>
+      /* Fetch the data from the endpoint:
+       * The fetch() function is used to make a network request to the endpoint.
+       * It returns a promise that resolves to a Response object.
+       * We then call the json() method on the Response object to parse the response body as JSON.
+       * This also returns a promise that resolves to the parsed data.
+       * Finally, we use the spread operator to push all the city objects from the parsed data into the cities array.
+       * Note: We use the spread operator instead of just pushing the data array because we want to push each city object individually into the cities array, rather than pushing the entire data array as a single element.
+       */
+      fetch( endpoint )
+        .then( ( response ) => response.json() )
+        .then( ( data ) => cities.push( ...data ) );
+
+      /**
+       * Escapes special regex characters in a string and returns a case-insensitive global RegExp.
+       * This ensures user input is always treated as a literal search term, never as a regex pattern.
+       *
+       * @param {string} value - The raw string to build a regex from.
+       * @returns {RegExp} A global, case-insensitive regular expression matching the literal value.
+       */
+      function buildRegex( value ) {
+        const escaped = value.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+        return new RegExp( escaped, 'gi' );
+      }
+
+      /**
+       * The findMatches function takes a word to match and an array of cities as arguments. It returns an array of cities that match the word to match.
+       * The function uses the filter() method to create a new array of cities that match the word to match. The filter() method takes a callback function that is called for each city in the cityList
+       * array. The callback function creates a regular expression using the word to match and checks if the city name or state name matches the regular expression. If either the city name or state name matches, the city is included in the new array of matching cities.
+       *
+       * @param {string} wordToMatch - The word that we want to match against the city and state names.
+       * @param {Array} cityList - The array of city objects that we want to search through.
+       * @returns {Array} An array of city objects that match the word to match.
+       */
+      function findMatches( wordToMatch, cityList ) {
+        // Build the regex once before filtering — wordToMatch doesn't change per item.
+        const regex = buildRegex( wordToMatch );
+
+        // We use the filter() method to create a new array of cities that match the wordToMatch.
+        return cityList.filter( ( place ) => {
+          // The || operator short-circuits: if place.city.match() is truthy, place.state.match() is never evaluated.
+          return place.city.match( regex ) || place.state.match( regex );
+        });
+      }
+
+
+      /**
+       *  Escapes HTML special characters in a string to prevent XSS when inserting into innerHTML.
+       * Any character that the browser could interpret as HTML markup is replaced with its safe entity equivalent.
+       *
+       * @param {string} str - The string to escape.
+       * @returns {string} The escaped string, safe for insertion into HTML.
+       */
+      function escapeHtml( str ) {
+        return str
+          .replace( /&/g, '&amp;' )
+          .replace( /</g, '&lt;' )
+          .replace( />/g, '&gt;' )
+          .replace( /"/g, '&quot;' );
+      }
+
+      /**
+       * When the user types in the search input, we want to display the matching cities and states in the suggestions list.
+       * The displayMatches function calls the findMatches function to get an array of matching cities.
+       * It then uses the map() method to create an array of HTML strings for each matching city, which includes the city name, state name, and population.
+       * Finally, it sets the innerHTML of the suggestions list to the HTML string we created.
+       * We also escape any special characters in the user's input and the city/state names to prevent X
+       *
+       * @returns {void} This function does not return anything. It updates the DOM directly by setting the innerHTML of the suggestions list.
+       */
+      function displayMatches() {
+        // If the input is empty, restore the default placeholder suggestions and stop.
+        // Without this guard, new RegExp('', 'gi') matches between every character and wraps
+        // every gap in the city/state names with a highlight <span>, producing broken output.
+        if ( '' === this.value.trim() ) {
+          suggestions.innerHTML =
+            '<li>Filter for a city</li><li>or a state</li>';
+          return;
+        }
+
+        // We call the findMatches function, passing in the current value of the search input (this.value) and the cities array.
+        // The findMatches function returns an array of matching cities, which we store in the matchArray variable.
+        const matchArray = findMatches( this.value, cities );
+
+        // Build the regex and safe input once before mapping — this.value doesn't change per item.
+        const regex = buildRegex( this.value );
+        const safeInput = escapeHtml( this.value );
+
+        // Display the matching cities and states in the suggestions list.
+        // We use the map() method to create an array of HTML strings for each matching city.
+        const html = matchArray
+          .map( ( place ) => {
+
+            // Escape the city/state names from the remote data before inserting into HTML,
+            // then highlight the matching text by wrapping it in a <span class="hl">.
+            // We escape first so the regex runs on safe text, not raw HTML-dangerous characters.
+            const cityName = escapeHtml( place.city ).replace(
+              regex,
+              `<span class="hl">${safeInput}</span>`
+            );
+            const stateName = escapeHtml( place.state ).replace(
+              regex,
+              `<span class="hl">${safeInput}</span>`
+            );
+
+            return `
+      <li>
+        <span class="name">${cityName}, ${stateName}</span>
+        <span class="population">${place.population.toLocaleString()}</span>
+      </li>
+    `;
+          })
+          .join( '' ); // We use the join() method to join the array of HTML strings into a single string, which we can then set as the innerHTML of the suggestions list.
+
+        // We set the innerHTML of the suggestions list to the HTML string we created.
+        suggestions.innerHTML = html;
+      }
+
+      // We select the search input and suggestions list from the DOM.
+      const searchInput = document.querySelector( '.search' );
+      const suggestions = document.querySelector( '.suggestions' );
+
+      // We add an event listener to the search input that listens for the 'change' event.
+      // When the 'change' event is fired, the displayMatches function is called.
+      searchInput.addEventListener( 'change', displayMatches );
+
+      // The 'change' event only fires when we click outside the input field after changing its value.
+      // To make the search more responsive and handle all kinds of input (typing, paste, autofill, etc.),
+      searchInput.addEventListener( 'input', displayMatches );
+    </script>
+  </body>
 </html>
