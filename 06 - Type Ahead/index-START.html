@@ -35,6 +35,18 @@
         .then( ( data ) => cities.push( ...data ) );
 
       /**
+       * Escapes special regex characters in a string and returns a case-insensitive global RegExp.
+       * This ensures user input is always treated as a literal search term, never as a regex pattern.
+       *
+       * @param {string} value - The raw string to build a regex from.
+       * @returns {RegExp} A global, case-insensitive regular expression matching the literal value.
+       */
+      function buildRegex( value ) {
+        const escaped = value.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+        return new RegExp( escaped, 'gi' );
+      }
+
+      /**
        * The findMatches function takes a word to match and an array of cities as arguments. It returns an array of cities that match the word to match.
        * The function uses the filter() method to create a new array of cities that match the word to match. The filter() method takes a callback function that is called for each city in the cityList
        * array. The callback function creates a regular expression using the word to match and checks if the city name or state name matches the regular expression. If either the city name or state name matches, the city is included in the new array of matching cities.
@@ -44,41 +56,16 @@
        * @returns {Array} An array of city objects that match the word to match.
        */
       function findMatches( wordToMatch, cityList ) {
+        // Build the regex once before filtering — wordToMatch doesn't change per item.
+        const regex = buildRegex( wordToMatch );
+
         // We use the filter() method to create a new array of cities that match the wordToMatch.
         return cityList.filter( ( place ) => {
-          // Create a regular expression using the wordToMatch.
-          // The 'g' flag is for global search, and the 'i' flag is for case-insensitive search.
-          // We do this because we want to find all matches of the wordToMatch in the city and state names, regardless of case.
-          // We first escape any special characters in the wordToMatch using a regular expression, so that they are treated as literal characters in the regular expression.
-          const escaped = wordToMatch.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
-          const regex = new RegExp( escaped, 'gi' );
-
-          // We use the match() method to check if the city name or state name matches the regular expression.
           // The || operator short-circuits: if place.city.match() is truthy, place.state.match() is never evaluated.
-          // This is more efficient than storing both results in variables first, which would force both .match() calls to always run.
           return place.city.match( regex ) || place.state.match( regex );
         });
       }
 
-      /**
-       * The numberWithCommas function takes a number as an argument and returns a string with the number formatted with commas as thousands separators.
-       * For example, if the input is 1234567, the output will be "1,234,567".
-       * This function is used to format the population numbers in the suggestions list.
-       *
-       * @param {number} x - The number that we want to format with commas.
-       * @returns {string} A string representation of the number with commas as thousands separators.
-       */
-      function numberWithCommas( x ) {
-        x = x.toString();
-
-        const pattern = /(-?\d+)(\d{3})/;
-
-        while ( pattern.test( x ) ) {
-          x = x.replace( pattern, '$1,$2' );
-        }
-
-        return x;
-      }
 
       /**
        *  Escapes HTML special characters in a string to prevent XSS when inserting into innerHTML.
@@ -118,17 +105,16 @@
         // The findMatches function returns an array of matching cities, which we store in the matchArray variable.
         const matchArray = findMatches( this.value, cities );
 
+        // Build the regex and safe input once before mapping — this.value doesn't change per item.
+        const regex = buildRegex( this.value );
+        const safeInput = escapeHtml( this.value );
+
         // Display the matching cities and states in the suggestions list.
         // We use the map() method to create an array of HTML strings for each matching city.
         const html = matchArray
           .map( ( place ) => {
-            // Escape special regex characters in the user's input before building the RegExp,
-            // and escape HTML special characters before inserting it into the <span> to prevent XSS.
-            const escaped = this.value.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
-            const regex = new RegExp( escaped, 'gi' );
-            const safeInput = escapeHtml( this.value );
 
-            // Escape the city and state names from the remote data before inserting into HTML,
+            // Escape the city/state names from the remote data before inserting into HTML,
             // then highlight the matching text by wrapping it in a <span class="hl">.
             // We escape first so the regex runs on safe text, not raw HTML-dangerous characters.
             const cityName = escapeHtml( place.city ).replace(
@@ -143,7 +129,7 @@
             return `
       <li>
         <span class="name">${cityName}, ${stateName}</span>
-        <span class="population">${numberWithCommas( place.population )}</span>
+        <span class="population">${place.population.toLocaleString()}</span>
       </li>
     `;
           })
