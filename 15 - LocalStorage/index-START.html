@@ -31,6 +31,32 @@
   const itemsList = document.querySelector('.plates');
   const items = [];
 
+  function addItem( e ) {
+    // Prevent the form from submitting and refreshing the page
+    e.preventDefault();
+
+    // Get the value of the input field with name 'item' from the form
+    // We can use 'this' to refer to the form element that triggered the event
+    // We use the first parentheses to get the input element first and then we access its value
+    const text = ( this.querySelector( '[name=item]' ) ).value;
+
+    // Create an item object with the name from the input and a done property set to false
+    const item = {
+      text,
+      done: false
+    };
+
+    // Add the new item to the items array
+    items.push( item );
+
+    // Reset the form to clear the input field after adding the item
+    this.reset();
+
+    console.log( 'Adding Item...', item );
+    console.log( 'Current Items:', items );
+  }
+
+  addItems.addEventListener( 'submit', addItem );
 </script>
 
 
