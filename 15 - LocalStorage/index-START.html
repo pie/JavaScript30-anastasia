@@ -24,6 +24,9 @@
       <input type="text" name="item" placeholder="Item Name" required>
       <input type="submit" value="+ Add Item">
     </form>
+    <button class="check-all">Check All</button>
+    <button class="uncheck-all">Uncheck All</button>
+    <button class="clear">Clear Items</button>
   </div>
 
 <script>
@@ -32,6 +35,10 @@
 
   // Try to get the 'items' from localStorage and parse it as JSON. If it doesn't exist, use an empty array.
   const items = JSON.parse( localStorage.getItem( 'items' ) ) || [];
+
+  const checkAllButton = document.querySelector('.check-all');
+  const uncheckAllButton = document.querySelector('.uncheck-all');
+  const clearButton = document.querySelector('.clear');
 
   /**
    * This function is called when the form is submitted to add a new item to the list.
@@ -122,6 +129,31 @@
     localStorage.setItem( 'items', JSON.stringify( items ) );
   }
 
+  /**
+   * This function sets the 'done' property of all items in the list to the specified value.
+   * It updates the items array, saves it to localStorage, and repopulates the list in the DOM.
+   * 
+   * @param {boolean} done - The value to set for the 'done' property of all items (true or false).
+   * @returns {void}
+   */
+  function setAllDone( done ) {
+    items.forEach( item => item.done = done );
+    localStorage.setItem( 'items', JSON.stringify( items ) );
+    populateList( items, itemsList );
+  }
+
+  /**
+   * This function clears all items from the list by emptying the items array.
+   * It updates localStorage and repopulates the list in the DOM to reflect the changes.
+   * 
+   * @returns {void}
+   */
+  function clearItems() {
+    items.length = 0;
+    localStorage.setItem( 'items', JSON.stringify( items ) );
+    populateList( items, itemsList );
+  }
+
   // Add an event listener to the form to handle the submit event and call the addItem function
   // That will add the new item to the list when the form is submitted
   addItems.addEventListener( 'submit', addItem );
@@ -135,6 +167,10 @@
   // This will ensure that the list is populated with the saved items when the user revisits the page
   // If there are no items in localStorage, it will just display an empty list until the user adds new items 
   populateList( items, itemsList );
+
+  checkAllButton.addEventListener( 'click', () => setAllDone( true ) );
+  uncheckAllButton.addEventListener( 'click', () => setAllDone( false ) );
+  clearButton.addEventListener( 'click', clearItems );
 </script>
 
 
