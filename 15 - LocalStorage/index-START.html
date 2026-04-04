@@ -33,6 +33,15 @@
   // Try to get the 'items' from localStorage and parse it as JSON. If it doesn't exist, use an empty array.
   const items = JSON.parse( localStorage.getItem( 'items' ) ) || [];
 
+  /**
+   * This function is called when the form is submitted to add a new item to the list.
+   * It prevents the default form submission behavior, gets the value from the input field,
+   * creates a new item object, adds it to the items array, updates the displayed list,
+   * saves the updated items array to localStorage, and resets the form.
+   * 
+   * @param {Event} e - The event object from the form submission.
+   * @returns {void}
+   */
   function addItem( e ) {
     // Prevent the form from refreshing the page when it is submitted
     e.preventDefault();
@@ -64,6 +73,15 @@
     console.log( 'Current Items:', items );
   }
 
+  /**
+   * This function populates the list of plates in the DOM.
+   * It takes an array of plate objects and a DOM element to display the list.
+   * Each plate object should have a 'text' property and a 'done' property.
+   * 
+   * @param {Array} plates - The array of plate objects to display.
+   * @param {HTMLElement} platesList - The DOM element to display the list of plates.
+   * @returns {void}
+   */
   function populateList( plates = [], platesList ) {
     // Use the map method to create an array of HTML strings for each plate item
     // We use the index 'i' to set a data attribute on the checkbox for later
@@ -78,6 +96,13 @@
     }).join('');
   }
 
+  /**
+   * This function toggles the 'done' property of an item when its checkbox is clicked.
+   * It updates the items array and saves the updated array to localStorage.
+   * 
+   * @param {Event} e - The event object from the click event.
+   * @returns {void}
+   */
   function toggleDone( e ) {
     // Check if the clicked element is not a checkbox, if so, return early and do nothing
     if ( !e.target.matches( 'input' ) ) {
