@@ -24,8 +24,7 @@
       <input type="text" name="item" placeholder="Item Name" required>
       <input type="submit" value="+ Add Item">
     </form>
-    <button class="check-all">Check All</button>
-    <button class="uncheck-all">Uncheck All</button>
+    <button class="check-items">Check All</button>
     <button class="clear">Clear Items</button>
   </div>
 
@@ -36,8 +35,7 @@
   // Try to get the 'items' from localStorage and parse it as JSON. If it doesn't exist, use an empty array.
   const items = JSON.parse( localStorage.getItem( 'items' ) ) || [];
 
-  const checkAllButton = document.querySelector('.check-all');
-  const uncheckAllButton = document.querySelector('.uncheck-all');
+  const checkItemsButton = document.querySelector('.check-items');
   const clearButton = document.querySelector('.clear');
 
   /**
@@ -76,8 +74,8 @@
     // Reset the form to clear the input field after adding the item
     this.reset();
 
-    console.log( 'Adding Item...', item );
-    console.log( 'Current Items:', items );
+    // Revert button text to 'Check All' if any item is unchecked, otherwise set it to 'Uncheck All'
+    updateCheckItemsButton();
   }
 
   /**
@@ -127,19 +125,21 @@
 
     // Save the updated items array to localStorage as a JSON string
     localStorage.setItem( 'items', JSON.stringify( items ) );
+
+    // Revert button text to 'Check All' if any item is unchecked, otherwise set it to 'Uncheck All'
+    updateCheckItemsButton();
   }
 
-  /**
-   * This function sets the 'done' property of all items in the list to the specified value.
-   * It updates the items array, saves it to localStorage, and repopulates the list in the DOM.
-   * 
-   * @param {boolean} done - The value to set for the 'done' property of all items (true or false).
-   * @returns {void}
-   */
-  function setAllDone( done ) {
-    items.forEach( item => item.done = done );
+  function updateCheckItemsButton() {
+    const allDone = items.every( item => item.done );
+    checkItemsButton.textContent = allDone ? 'Uncheck All' : 'Check All';
+  }
+
+  function setAllDone( state ) {
+    items.forEach( item => item.done = state );
     localStorage.setItem( 'items', JSON.stringify( items ) );
     populateList( items, itemsList );
+    updateCheckItemsButton();
   }
 
   /**
@@ -168,12 +168,18 @@
   // If there are no items in localStorage, it will just display an empty list until the user adds new items 
   populateList( items, itemsList );
 
-  checkAllButton.addEventListener( 'click', () => setAllDone( true ) );
-  uncheckAllButton.addEventListener( 'click', () => setAllDone( false ) );
+
+  // Add an event listener to the checkItemsButton to handle click events
+  // and call a function that checks or unchecks all items
+  checkItemsButton.addEventListener( 'click', () => {
+    const allDone = items.every( item => item.done );
+    setAllDone( !allDone );
+  } );
+
+  // Add an event listener to the clearButton to handle click events and call the clearItems function
   clearButton.addEventListener( 'click', clearItems );
 </script>
 
 
 </body>
 </html>
-
