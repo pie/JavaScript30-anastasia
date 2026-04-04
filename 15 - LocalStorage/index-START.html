@@ -29,10 +29,12 @@
 <script>
   const addItems = document.querySelector('.add-items');
   const itemsList = document.querySelector('.plates');
-  const items = [];
+
+  // Try to get the 'items' from localStorage and parse it as JSON. If it doesn't exist, use an empty array.
+  const items = JSON.parse( localStorage.getItem( 'items' ) ) || [];
 
   function addItem( e ) {
-    // Prevent the form from submitting and refreshing the page
+    // Prevent the form from refreshing the page when it is submitted
     e.preventDefault();
 
     // Get the value of the input field with name 'item' from the form
@@ -49,6 +51,12 @@
     // Add the new item to the items array
     items.push( item );
 
+    // Call the populateList function to update the displayed list of items
+    populateList( items, itemsList );
+
+    // Save the updated items array to localStorage as a JSON string
+    localStorage.setItem( 'items', JSON.stringify( items ) );
+
     // Reset the form to clear the input field after adding the item
     this.reset();
 
@@ -56,7 +64,52 @@
     console.log( 'Current Items:', items );
   }
 
+  function populateList( plates = [], platesList ) {
+    // Use the map method to create an array of HTML strings for each plate item
+    // We use the index 'i' to set a data attribute on the checkbox for later
+    // We use join('') to combine the array of strings into a single string without commas
+    platesList.innerHTML = plates.map ( ( plate, i ) => {
+      return `
+        <li>
+          <input type="checkbox" data-index=${i} id="item${i}" ${ plate.done ? 'checked' : '' } />
+          <label for="item${i}">${plate.text}</label>
+        </li>
+      `;
+    }).join('');
+  }
+
+  function toggleDone( e ) {
+    // Check if the clicked element is not a checkbox, if so, return early and do nothing
+    if ( !e.target.matches( 'input' ) ) {
+      return;
+    }
+
+    // Get the clicked element, which should be the checkbox input
+    const clickedElement = e.target;
+
+    // Get the index of the clicked checkbox from the data attribute
+    const index = clickedElement.dataset.index;
+
+    // Toggle the done property of the corresponding item in the items array
+    items[ index ].done = !items[ index ].done;
+
+    // Save the updated items array to localStorage as a JSON string
+    localStorage.setItem( 'items', JSON.stringify( items ) );
+  }
+
+  // Add an event listener to the form to handle the submit event and call the addItem function
+  // That will add the new item to the list when the form is submitted
   addItems.addEventListener( 'submit', addItem );
+
+  // Add an event listener to the items list to handle click events and call the toggleDone function
+  // Listen for a click on the list and then the toggleDone function will check if the click was on a checkbox
+  // and toggle the done property of the corresponding item
+  itemsList.addEventListener( 'click', toggleDone );
+
+  // When the page loads, call the populateList function to display any items that are already in localStorage
+  // This will ensure that the list is populated with the saved items when the user revisits the page
+  // If there are no items in localStorage, it will just display an empty list until the user adds new items 
+  populateList( items, itemsList );
 </script>
 
 
