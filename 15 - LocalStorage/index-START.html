@@ -88,17 +88,26 @@
    * @returns {void}
    */
   function populateList( plates = [], platesList ) {
-    // Use the map method to create an array of HTML strings for each plate item
-    // We use the index 'i' to set a data attribute on the checkbox for later
-    // We use join('') to combine the array of strings into a single string without commas
-    platesList.innerHTML = plates.map ( ( plate, i ) => {
-      return `
-        <li>
-          <input type="checkbox" data-index=${i} id="item${i}" ${ plate.done ? 'checked' : '' } />
-          <label for="item${i}">${plate.text}</label>
-        </li>
-      `;
-    }).join('');
+    // Clear the existing content of the platesList element before populating it with new items
+    platesList.innerHTML = '';
+
+    // Iterate over the array of plates and create a list item for each plate
+    plates.forEach( ( plate, i ) => {
+      const li = document.createElement( 'li' );
+
+      const checkbox = document.createElement( 'input' );
+      checkbox.type = 'checkbox';
+      checkbox.dataset.index = i;
+      checkbox.id = `item${i}`;
+      checkbox.checked = plate.done;
+
+      const label = document.createElement( 'label' );
+      label.htmlFor = `item${i}`;
+      label.textContent = plate.text;
+
+      li.append( checkbox, label );
+      platesList.append( li );
+    } );
   }
 
   /**
@@ -130,11 +139,28 @@
     updateCheckItemsButton();
   }
 
+  /**
+   * This function updates the state of the checkItemsButton based on the current items in the list.
+   * It checks if there are any items and if all items are marked as done to determine whether to enable or disable the button
+   * and to set the appropriate text for the button.
+   * 
+   * @returns {void}
+   */
   function updateCheckItemsButton() {
-    const allDone = items.every( item => item.done );
+    const hasItems = items.length > 0;
+    const allDone = hasItems && items.every( item => item.done );
+    checkItemsButton.disabled = !hasItems;
     checkItemsButton.textContent = allDone ? 'Uncheck All' : 'Check All';
   }
 
+  /**
+   * This function sets the 'done' property of all items in the list to the specified state (true or false).
+   * It updates the items array, saves the updated array to localStorage, repopulates the list in the DOM,
+   * and updates the state of the checkItemsButton.
+   * 
+   * @param {boolean} state - The state to set for all items (true for done, false for not done).
+   * @returns {void}
+   */
   function setAllDone( state ) {
     items.forEach( item => item.done = state );
     localStorage.setItem( 'items', JSON.stringify( items ) );
@@ -152,6 +178,7 @@
     items.length = 0;
     localStorage.setItem( 'items', JSON.stringify( items ) );
     populateList( items, itemsList );
+    updateCheckItemsButton();
   }
 
   // Add an event listener to the form to handle the submit event and call the addItem function
@@ -166,8 +193,9 @@
   // When the page loads, call the populateList function to display any items that are already in localStorage
   // This will ensure that the list is populated with the saved items when the user revisits the page
   // If there are no items in localStorage, it will just display an empty list until the user adds new items 
+  // Also update the checkItemsButton state based on the loaded items - this will ensure the button is correctly enabled/disabled and has the correct text when the page loads
   populateList( items, itemsList );
-
+  updateCheckItemsButton();
 
   // Add an event listener to the checkItemsButton to handle click events
   // and call a function that checks or unchecks all items
