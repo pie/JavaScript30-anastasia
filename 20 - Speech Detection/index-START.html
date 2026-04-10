@@ -17,6 +17,12 @@
   // We use the webkit prefix for any browsers that don't support the unprefixed version
   window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+  if ( !window.SpeechRecognition ) {
+    document.querySelector('.words').textContent = 'Speech recognition is not supported in this browser.';
+    document.querySelector('.start-button').disabled = true;
+    throw new Error('SpeechRecognition not supported');
+  }
+
   // We create a new instance of SpeechRecognition
   const recognition = new SpeechRecognition();
 
@@ -46,13 +52,13 @@
     
     // If the result is final, we create a new paragraph element and add it to the '.words' div
     // Final means that the speech recognition has finished processing the audio and has a final result for us
-    if ( event.results[0].isFinal ) {
+    if ( event.results[event.resultIndex].isFinal ) {
       p = document.createElement('p');
       words.appendChild(p);
     }
 
     // If the transcript includes the word 'stop', we set the stopped variable to true and stop the recognition
-    if ( transcript.includes('stop') ) {
+    if ( /\bstop\b/i.test(transcript) ) {
       stopped = true;
       recognition.stop();
     }
@@ -87,6 +93,17 @@
   recognition.addEventListener( 'end', () => {
     if ( true === stopped ) {
       startButton.disabled = false;
+    }
+  } );
+
+  // We listen for the 'error' event on the recognition object
+  // Which is fired when there is an error with the speech recognition
+  // If the error is 'not-allowed', it means that the user has denied access to the microphone
+  // In that case, we set the text content of the '.words' div to a message telling the user to allow microphone access and refresh the page
+  recognition.addEventListener( 'error', e => {
+    if ( e.error === 'not-allowed' ) {
+      words.textContent = 'Microphone access was denied. Please allow microphone access and refresh the page.';
+      startButton.disabled = true;
     }
   } );
 
