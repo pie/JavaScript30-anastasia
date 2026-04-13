@@ -10,9 +10,105 @@
   <div class="words" contenteditable>
   </div>
 
+  <button class="start-button">Start</button>
+
 <script>
+  // We grab the SpeechRecognition object from the window
+  // We use the webkit prefix for any browsers that don't support the unprefixed version
   window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+  if ( !window.SpeechRecognition ) {
+    document.querySelector('.words').textContent = 'Speech recognition is not supported in this browser.';
+    document.querySelector('.start-button').disabled = true;
+    throw new Error('SpeechRecognition not supported');
+  }
+
+  // We create a new instance of SpeechRecognition
+  const recognition = new SpeechRecognition();
+
+  // If we want to get interim results while we are speaking, we set the interimResults property to true
+  // Otherwise, we will only get final results after speech recognition has finished processing
+  recognition.interimResults = true;
+
+  let stopped = false;
+
+  // Create a new paragraph element and add it to the '.words' div
+  let p = document.createElement('p');
+  const words = document.querySelector('.words');
+  words.appendChild(p);
+
+  // We listen for the 'result' event on the recognition object
+  // Which is fired when we get a result from the speech recognition
+  // The event object contains a results property
+  // Which is an array of all the results we have received so far
+  recognition.addEventListener( 'result', event => {
+    const transcript = Array.from( event.results )
+      .map( result => result[0] )
+      .map( result => result.transcript )
+      .join('');
+
+    // We set the text content of the paragraph to the transcript
+    p.textContent = transcript;
+    
+    // If the result is final, we create a new paragraph element and add it to the '.words' div
+    // Final means that the speech recognition has finished processing the audio and has a final result for us
+    if ( event.results[event.resultIndex].isFinal ) {
+      p = document.createElement('p');
+      words.appendChild(p);
+    }
+
+    // If the transcript includes the word 'stop', we set the stopped variable to true and stop the recognition
+    if ( /\bstop\b/i.test(transcript) ) {
+      stopped = true;
+      recognition.stop();
+    }
+
+  } );
+
+  // When we stop speaking, we want to start the recognition again so we can keep getting results
+  // Otherwise, it will only work once and then stop
+  recognition.addEventListener( 'end', () => {
+    if ( false === stopped ) {
+      recognition.start();
+    }
+  } );
+
+  // We grab the start button and listen for a click event on it
+  const startButton = document.querySelector('.start-button');
+
+  // On click, we set the stopped variable to false and start the recognition again
+  // We also disable the start button so we can't click it again while the recognition is running
+  startButton.addEventListener( 'click', () => {
+    stopped = false;
+    recognition.start();
+    startButton.disabled = true;
+  } );
+
+  // We disable the start button when the recognition starts
+  recognition.addEventListener( 'start', () => startButton.disabled = true );
+
+  // When the recognition ends, we check if the stopped variable is true
+  // If it is, we enable the start button again so we can start the recognition again
+  // So if the user has said 'stop', the recognition will stop and the start button will be enabled again
+  recognition.addEventListener( 'end', () => {
+    if ( true === stopped ) {
+      startButton.disabled = false;
+    }
+  } );
+
+  // We listen for the 'error' event on the recognition object
+  // Which is fired when there is an error with the speech recognition
+  // If the error is 'not-allowed', it means that the user has denied access to the microphone
+  // In that case, we set the text content of the '.words' div to a message telling the user to allow microphone access and refresh the page
+  recognition.addEventListener( 'error', e => {
+    if ( e.error === 'not-allowed' ) {
+      words.textContent = 'Microphone access was denied. Please allow microphone access and refresh the page.';
+      startButton.disabled = true;
+    }
+  } );
+
+  // We start the recognition for the first time when the page loads
+  recognition.start();
 
 </script>
 
