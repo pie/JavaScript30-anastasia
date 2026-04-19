@@ -43,7 +43,38 @@
 
 <button></button>
 <script>
+  // Select all divs
+  const divs = document.querySelectorAll( 'div' );
 
+  /**
+   * Event handler function to log the class of the clicked div.
+   * 
+   * @param {Event} event - The event object
+   * @returns {void}
+   */
+  function logText( event ) {
+    // Log the class of the clicked div
+    console.log( this.classList.value );
+
+    // Stop bubbling
+    // So the first click logs the outermost div,
+    // then 'stop propagation' prevents the event from bubbling
+    // and the next click also logs the outermost div, and so on
+    event.stopPropagation();
+  }
+
+  // Add click event listener to each div
+  // The event listener will log the class of the clicked div
+  // But it will also trigger for all parent divs due to event bubbling
+  // By setting capture to true, the event listener will be triggered on the way down the DOM tree,
+  // so we will see the logs in the order of the divs from the outermost to the innermost
+  // By setting once to true, the event listener will be removed after the first click,
+  // so we will only see the logs for the first click, then the event listener will be removed
+  // and subsequent clicks will not log anything
+  divs.forEach( div => div.addEventListener( 'click', logText, {
+    capture: false,
+    once: true
+    } ) );
 </script>
 </body>
 </html>
