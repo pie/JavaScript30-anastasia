@@ -78,9 +78,9 @@ nav li {
 }
 
 li.logo {
-/* We use max-width instead of width here because we want the logo
-   to be able to grow and shrink with the size of the screen, but we don't want it to get too big.
-   We can't use transition on width, that's why we use max-width. */
+/* We use max-width here so the logo can smoothly reveal from 0 while
+   still sizing naturally with the available space, without growing beyond
+   the limit we set when the nav becomes fixed. */
   max-width: 0;
   overflow: hidden;
   background: white;
