@@ -58,9 +58,14 @@
   const nav = document.querySelector('#main');
   const topOfNav = nav.offsetTop; // This is the distance from the top of the page to the top of the nav
 
+  /**
+   * When the user scrolls down the page, we check if the scroll position is greater than or equal to the top of the nav.
+   * If it is, we add a class to the body to make the nav fixed, and we add some padding to the top of the body to prevent content from jumping up.
+   * If the scroll position is less than the top of the nav, we remove the class and the padding.
+   * 
+   * @returns {void}
+   */
   function fixNav() {
-    console.log(topOfNav, window.scrollY);
-
     if ( window.scrollY >= topOfNav ) {
       // When we make the nav fixed, it will be taken out of the normal flow of the document,
       // so we need to add some padding to the top of the body to prevent content from jumping up.
