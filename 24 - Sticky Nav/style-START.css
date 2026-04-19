@@ -50,6 +50,18 @@ nav {
   z-index: 1;
 }
 
+.fixed-nav nav {
+  /* When we make this fixed, it will be taken out of the normal flow of the document,
+  so we need to add some padding to the top of the body to prevent content from jumping up. */
+  position: fixed;
+  box-shadow: 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.fixed-nav .site-wrap {
+  /* When we make the nav fixed, we want to scale up the content a bit to make the transition look nicer. */
+  transform: scale(1);
+}
+
 nav ul {
   margin: 0;
   padding:0;
@@ -66,12 +78,21 @@ nav li {
 }
 
 li.logo {
+/* We use max-width instead of width here because we want the logo
+   to be able to grow and shrink with the size of the screen, but we don't want it to get too big.
+   We can't use transition on width, that's why we use max-width. */
   max-width: 0;
   overflow: hidden;
   background: white;
-  transition: all .5s;
+  transition: all .5s; /* The logo will appear when we make the nav fixed, because its max-width will transition over 0.5s. */
   font-weight: 600;
   font-size: 30px;
+}
+
+.fixed-nav li.logo {
+/* When we make the nav fixed, we want the logo to appear,
+   so we set max-width to something big enough to fit the logo. */
+  max-width: 500px;
 }
 
 li.logo a {

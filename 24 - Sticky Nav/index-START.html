@@ -55,7 +55,31 @@
   </div>
 
 <script>
+  const nav = document.querySelector('#main');
+  const topOfNav = nav.offsetTop; // This is the distance from the top of the page to the top of the nav
 
+  function fixNav() {
+    console.log(topOfNav, window.scrollY);
+
+    if ( window.scrollY >= topOfNav ) {
+      // When we make the nav fixed, it will be taken out of the normal flow of the document,
+      // so we need to add some padding to the top of the body to prevent content from jumping up.
+      // nav.offsetHeight is the height of the nav, so we add that much padding to the top of the body.
+      // We do this programmatically and not in the CSS, because the height of the nav
+      // might change, so we want to make sure that the padding is always the same as the height of the nav. 
+      document.body.style.paddingTop = nav.offsetHeight + 'px';
+
+      // We add a class to the body to make the nav fixed
+      // and we can use that class in our CSS to style the nav when it's fixed.
+      document.body.classList.add( 'fixed-nav' );
+    } else {
+      document.body.style.paddingTop = 0;
+      document.body.classList.remove( 'fixed-nav' );
+    }
+  }
+
+  // It runs on every page on scroll
+  window.addEventListener('scroll', fixNav);
 </script>
 
 </body>
