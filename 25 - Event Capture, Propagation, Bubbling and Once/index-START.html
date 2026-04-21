@@ -43,7 +43,40 @@
 
 <button></button>
 <script>
+  // This code demonstrates event capture, propagation, bubbling
+  // and the use of the 'once' option in event listeners.
+  // It wouldn't necessarily be used in production, but serves to illustrate these concepts.
 
+  // Select all divs
+  const divs = document.querySelectorAll( 'div' );
+
+  /**
+   * Event handler function to log the class of the clicked div.
+   * 
+   * @param {Event} event - The event object
+   * @returns {void}
+   */
+  function logText( event ) {
+    // Log the class of the div whose listener is currently running.
+    console.log( this.classList.value );
+
+    // Stop the event from bubbling up to parent divs for this click.
+    // With capture set to false, clicking the innermost div runs that
+    // div's handler first, then stopPropagation() prevents parent handlers
+    // from running for the same event.
+    event.stopPropagation();
+  }
+
+  // Add a click event listener to each div.
+  // With capture set to false, the listeners run during the bubbling phase.
+  // Without stopPropagation(), clicking an inner div would also trigger
+  // the handlers on its parent divs as the event bubbles upward.
+  // With once set to true, each div's listener is removed after it runs once,
+  // so each div can only be logged the first time its own handler executes.
+  divs.forEach( div => div.addEventListener( 'click', logText, {
+    capture: false,
+    once: true
+    } ) );
 </script>
 </body>
 </html>
