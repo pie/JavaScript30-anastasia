@@ -73,6 +73,22 @@
       align-items: center;
     }
 
+    /* First child starts hidden above the panel */
+    .panel > *:first-child {
+      transform: translateY(-100%);
+    }
+
+    /* Last child starts hidden below the panel */
+    .panel > *:last-child {
+      transform: translateY(100%);
+    }
+
+    /* When the panel is open, move the first and last child back to their original position to reveal them */
+    .panel.open-active > *:first-child,
+    .panel.open-active > *:last-child {
+      transform: translateY(0);
+    }
+
     .panel p {
       text-transform: uppercase;
       font-family: 'Amatic SC', cursive;
@@ -86,6 +102,9 @@
 
     .panel.open {
       font-size: 40px;
+
+      /* When the panel is open, make it take up more space than the other panels. */
+      flex: 5;
     }
 
   </style>
@@ -119,7 +138,42 @@
   </div>
 
   <script>
+    // Get a NodeList of all elements with the class 'panel' and store it in the variable 'panels'.
+    const panels = document.querySelectorAll( '.panel' );
 
+    /**
+     * When a panel is clicked, toggle the 'open' class on that panel.
+     * This will trigger the CSS transition to expand the panel and reveal its content.
+     * 
+     * @return {void}
+     */
+    function toggleOpen() {
+      this.classList.toggle( 'open' ); // 'this' refers to the panel that was clicked
+    }
+
+    /**
+     * When a transition ends on a panel, check if the property that triggered the transition is 'flex' or 'flex-grow'.
+     * If it is, toggle the 'open-active' class on that panel.
+     * This will trigger the CSS transition to reveal the content of the panel.
+     * 
+     * @param {TransitionEvent} event - The event object that contains information about the transition.
+     * @return {void}
+     */
+    function toggleActive( event ) {
+      // Check if the property that triggered the transition is 'flex' or 'flex-grow'.
+      // We need to check for both 'flex' and 'flex-grow' because different browsers use different property names for the same CSS property.
+      // And we need to check this because we only want to toggle the 'open-active' class when the flex property has finished transitioning,
+      // not when the font-size or background has finished transitioning.
+      if ( event.propertyName.includes( 'flex' ) ) {
+        this.classList.toggle( 'open-active' ); // 'this' refers to the panel that finished transitioning
+      }
+    }
+
+    // Add a click event listener to each panel that calls the toggleOpen function when the panel is clicked.
+    panels.forEach( panel => panel.addEventListener( 'click', toggleOpen ) );
+
+    // Add a transitionend event listener to each panel that calls the toggleActive function when the transition ends.
+    panels.forEach( panel => panel.addEventListener( 'transitionend', toggleActive ) );
   </script>
 
 
