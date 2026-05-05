@@ -64,9 +64,9 @@
       width: 100%;
       transition: transform 0.5s;
 
-      /* Make each child take up the full height of the panel, but allow them to shrink if necessary.
-         This way, when the panel is open, the children will be spaced out evenly,
-         but when it's closed, they will stack on top of each other. */
+      /* Make each child grow to share the panel height without shrinking.
+         This keeps the children spaced out evenly when the panel is open,
+         while the translateY transforms handle hiding and revealing them. */
       flex: 1 0 auto; /* That means flex-grow: 1, flex-shrink: 0, flex-basis: auto */
       display: flex;
       justify-content: center;
