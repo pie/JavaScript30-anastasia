@@ -107,30 +107,35 @@
       flex: 5;
     }
 
+    .panel:focus-visible {
+      outline: 3px solid white;
+      outline-offset: -3px;
+    }
+
   </style>
 
   <div class="panels">
-    <div class="panel panel1">
+    <div class="panel panel1" role="button" tabindex="0" aria-expanded="false">
       <p>Hey</p>
       <p>Let's</p>
       <p>Dance</p>
     </div>
-    <div class="panel panel2">
+    <div class="panel panel2" role="button" tabindex="0" aria-expanded="false">
       <p>Give</p>
       <p>Take</p>
       <p>Receive</p>
     </div>
-    <div class="panel panel3">
+    <div class="panel panel3" role="button" tabindex="0" aria-expanded="false">
       <p>Experience</p>
       <p>It</p>
       <p>Today</p>
     </div>
-    <div class="panel panel4">
+    <div class="panel panel4" role="button" tabindex="0" aria-expanded="false">
       <p>Give</p>
       <p>All</p>
       <p>You can</p>
     </div>
-    <div class="panel panel5">
+    <div class="panel panel5" role="button" tabindex="0" aria-expanded="false">
       <p>Life</p>
       <p>In</p>
       <p>Motion</p>
@@ -149,6 +154,7 @@
      */
     function toggleOpen() {
       this.classList.toggle( 'open' ); // 'this' refers to the panel that was clicked
+      this.setAttribute( 'aria-expanded', this.classList.contains( 'open' ) );
     }
 
     /**
@@ -169,8 +175,26 @@
       }
     }
 
+    /**
+     * When a key is pressed while a panel is focused, check if the key is 'Enter' or 'Space'.
+     * If it is, prevent the default action (which would be to scroll the page for Space) and toggle the 'open' class on that panel.
+     * This allows keyboard users to interact with the panels using the keyboard.
+     * 
+     * @param {KeyboardEvent} event - The event object that contains information about the key that was pressed.
+     * @return {void}
+     */
+    function handleKeydown( event ) {
+      if ( 'Enter' === event.key || ' ' === event.key ) {
+        event.preventDefault(); // prevent Space from scrolling the page
+        toggleOpen.call( this );
+      }
+    }
+
     // Add a click event listener to each panel that calls the toggleOpen function when the panel is clicked.
     panels.forEach( panel => panel.addEventListener( 'click', toggleOpen ) );
+
+    // Add a keydown event listener so keyboard users can activate panels with Enter or Space.
+    panels.forEach( panel => panel.addEventListener( 'keydown', handleKeydown ) );
 
     // Add a transitionend event listener to each panel that calls the toggleActive function when the transition ends.
     panels.forEach( panel => panel.addEventListener( 'transitionend', toggleActive ) );
