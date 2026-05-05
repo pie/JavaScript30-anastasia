@@ -27,6 +27,7 @@
     .panels {
       min-height: 100vh;
       overflow: hidden;
+      display: flex;
     }
 
     .panel {
@@ -44,19 +45,48 @@
       font-size: 20px;
       background-size: cover;
       background-position: center;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
 
-    .panel1 { background-image:url(https://source.unsplash.com/gYl-UtwNg_I/1500x1500); }
-    .panel2 { background-image:url(https://source.unsplash.com/rFKUFzjPYiQ/1500x1500); }
-    .panel3 { background-image:url(https://images.unsplash.com/photo-1465188162913-8fb5709d6d57?ixlib=rb-0.3.5&q=80&fm=jpg&crop=faces&cs=tinysrgb&w=1500&h=1500&fit=crop&s=967e8a713a4e395260793fc8c802901d); }
-    .panel4 { background-image:url(https://source.unsplash.com/ITjiVXcwVng/1500x1500); }
-    .panel5 { background-image:url(https://source.unsplash.com/3MNzGlQM7qs/1500x1500); }
+    .panel1 { background-image:url(img1.jpg); }
+    .panel2 { background-image:url(img2.avif); }
+    .panel3 { background-image:url(img3.jpg); }
+    .panel4 { background-image:url(img4.webp); }
+    .panel5 { background-image:url(img5.webp); }
 
     /* Flex Children */
     .panel > * {
       margin: 0;
       width: 100%;
       transition: transform 0.5s;
+
+      /* Make each child grow to share the panel height without shrinking.
+         This keeps the children spaced out evenly when the panel is open,
+         while the translateY transforms handle hiding and revealing them. */
+      flex: 1 0 auto; /* That means flex-grow: 1, flex-shrink: 0, flex-basis: auto */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* First child starts hidden above the panel */
+    .panel > *:first-child {
+      transform: translateY(-100%);
+    }
+
+    /* Last child starts hidden below the panel */
+    .panel > *:last-child {
+      transform: translateY(100%);
+    }
+
+    /* When the panel is open, move the first and last child back to their original position to reveal them */
+    .panel.open-active > *:first-child,
+    .panel.open-active > *:last-child {
+      transform: translateY(0);
     }
 
     .panel p {
@@ -72,33 +102,40 @@
 
     .panel.open {
       font-size: 40px;
+
+      /* When the panel is open, make it take up more space than the other panels. */
+      flex: 5;
+    }
+
+    .panel:focus-visible {
+      outline: 3px solid white;
+      outline-offset: -3px;
     }
 
   </style>
 
-
   <div class="panels">
-    <div class="panel panel1">
+    <div class="panel panel1" role="button" tabindex="0" aria-expanded="false">
       <p>Hey</p>
       <p>Let's</p>
       <p>Dance</p>
     </div>
-    <div class="panel panel2">
+    <div class="panel panel2" role="button" tabindex="0" aria-expanded="false">
       <p>Give</p>
       <p>Take</p>
       <p>Receive</p>
     </div>
-    <div class="panel panel3">
+    <div class="panel panel3" role="button" tabindex="0" aria-expanded="false">
       <p>Experience</p>
       <p>It</p>
       <p>Today</p>
     </div>
-    <div class="panel panel4">
+    <div class="panel panel4" role="button" tabindex="0" aria-expanded="false">
       <p>Give</p>
       <p>All</p>
       <p>You can</p>
     </div>
-    <div class="panel panel5">
+    <div class="panel panel5" role="button" tabindex="0" aria-expanded="false">
       <p>Life</p>
       <p>In</p>
       <p>Motion</p>
@@ -106,7 +143,61 @@
   </div>
 
   <script>
+    // Get a NodeList of all elements with the class 'panel' and store it in the variable 'panels'.
+    const panels = document.querySelectorAll( '.panel' );
 
+    /**
+     * When a panel is clicked, toggle the 'open' class on that panel.
+     * This will trigger the CSS transition to expand the panel and reveal its content.
+     * 
+     * @return {void}
+     */
+    function toggleOpen() {
+      this.classList.toggle( 'open' ); // 'this' refers to the panel that was clicked
+      this.setAttribute( 'aria-expanded', this.classList.contains( 'open' ) );
+    }
+
+    /**
+     * When a transition ends on a panel, check if the property that triggered the transition is 'flex' or 'flex-grow'.
+     * If it is, toggle the 'open-active' class on that panel.
+     * This will trigger the CSS transition to reveal the content of the panel.
+     * 
+     * @param {TransitionEvent} event - The event object that contains information about the transition.
+     * @return {void}
+     */
+    function toggleActive( event ) {
+      // Check if the property that triggered the transition is 'flex' or 'flex-grow'.
+      // We need to check for both 'flex' and 'flex-grow' because different browsers use different property names for the same CSS property.
+      // And we need to check this because we only want to toggle the 'open-active' class when the flex property has finished transitioning,
+      // not when the font-size or background has finished transitioning.
+      if ( event.propertyName.includes( 'flex' ) ) {
+        this.classList.toggle( 'open-active' ); // 'this' refers to the panel that finished transitioning
+      }
+    }
+
+    /**
+     * When a key is pressed while a panel is focused, check if the key is 'Enter' or 'Space'.
+     * If it is, prevent the default action (which would be to scroll the page for Space) and toggle the 'open' class on that panel.
+     * This allows keyboard users to interact with the panels using the keyboard.
+     * 
+     * @param {KeyboardEvent} event - The event object that contains information about the key that was pressed.
+     * @return {void}
+     */
+    function handleKeydown( event ) {
+      if ( 'Enter' === event.key || ' ' === event.key ) {
+        event.preventDefault(); // prevent Space from scrolling the page
+        toggleOpen.call( this );
+      }
+    }
+
+    // Add a click event listener to each panel that calls the toggleOpen function when the panel is clicked.
+    panels.forEach( panel => panel.addEventListener( 'click', toggleOpen ) );
+
+    // Add a keydown event listener so keyboard users can activate panels with Enter or Space.
+    panels.forEach( panel => panel.addEventListener( 'keydown', handleKeydown ) );
+
+    // Add a transitionend event listener to each panel that calls the toggleActive function when the transition ends.
+    panels.forEach( panel => panel.addEventListener( 'transitionend', toggleActive ) );
   </script>
 
 
