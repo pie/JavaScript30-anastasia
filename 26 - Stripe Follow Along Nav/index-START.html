@@ -221,6 +221,85 @@
 </style>
 
 <script>
+  // Get all the triggers
+  // Those are the things that will cause the dropdown to show
+  // In this case, it's the list items in the top nav - all the direct children of .cool
+  const triggers = document.querySelectorAll( '.cool > li' );
+
+  // Get the background element
+  // This is the white background that will be behind the dropdown
+  const background = document.querySelector( '.dropdownBackground' );
+
+  // Get the nav element
+  // We need this to position the background correctly
+  const nav = document.querySelector( '.top' );
+
+  /**
+   * Opens the dropdown for a nav trigger on mouseenter or focusin.
+   * Adds trigger-enter immediately (makes dropdown display:block), then
+   * trigger-enter-active after 150ms (fades it in) — the delay is checked
+   * so a fast mouse-out before 150ms won't leave a half-open dropdown.
+   * Also sizes and positions the shared white background to match the dropdown.
+   * 
+   * @param {Event} event The mouseenter or focusin event that triggered the dropdown to open
+   * @returns {void}
+   */
+  function handleEnter( event ) {
+    const trigger = event.currentTarget;
+    trigger.classList.add( 'trigger-enter' );
+    setTimeout( () => trigger.classList.contains( 'trigger-enter' ) && trigger.classList.add( 'trigger-enter-active' ), 150 );
+    background.classList.add( 'open' );
+
+    const dropdown = trigger.querySelector( '.dropdown' );
+
+    // Get the dropdown coords and the nav coords
+    const dropdownCoords = dropdown.getBoundingClientRect();
+    const navCoords = nav.getBoundingClientRect();
+
+    // Coords are viewport-relative, so subtract nav offset to get position inside the nav
+    const coordinates = {
+      height: dropdownCoords.height,
+      width: dropdownCoords.width,
+      top: dropdownCoords.top - navCoords.top,
+      left: dropdownCoords.left - navCoords.left
+    };
+
+    background.style.setProperty( 'width', `${coordinates.width}px` );
+    background.style.setProperty( 'height', `${coordinates.height}px` );
+    background.style.setProperty( 'transform', `translate(${coordinates.left}px, ${coordinates.top}px)` );
+  }
+
+  /**
+   * Closes the dropdown for a nav trigger on mouseleave or focusout.
+   * Removes both trigger classes so the dropdown fades out and is hidden.
+   * 
+   * @param {Event} event The mouseleave or focusout event that triggered the dropdown to close
+   * @returns {void}
+   */
+  function handleLeave( event ) {
+    event.currentTarget.classList.remove( 'trigger-enter', 'trigger-enter-active' );
+    background.classList.remove( 'open' );
+  }
+
+  /**
+   * Closes the dropdown for a nav trigger on focusout, but only if the focus moves
+   * completely outside the trigger (not into its dropdown).
+   * 
+   * @param {Event} event The focusout event that triggered the dropdown to potentially close
+   * @returns {void}
+   */
+  function handleFocusOut( event ) {
+    if ( !event.currentTarget.contains( event.relatedTarget ) ) {
+      handleLeave( event );
+    }
+  }
+
+  triggers.forEach( trigger => {
+    trigger.addEventListener( 'mouseenter', handleEnter );
+    trigger.addEventListener( 'mouseleave', handleLeave );
+    trigger.addEventListener( 'focusin', handleEnter );
+    trigger.addEventListener( 'focusout', handleFocusOut );
+  });
 </script>
 
 </body>
