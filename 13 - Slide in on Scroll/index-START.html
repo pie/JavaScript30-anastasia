@@ -45,24 +45,14 @@
 
   <script>
     /**
-     * Debounce function from John-David Dalton's Lodash library
-     * https://lodash.com/docs/4.17.15#debounce
-     * 
-     * Creates a debounced function that delays invoking `func` until after `wait` milliseconds
-     * have elapsed since the last time the debounced function was invoked.
-     * The debounced function comes with a `cancel` method to cancel delayed `func` invocation
-     * and a `flush` method to immediately invoke them. Provide an options object to indicate whether
-     * `func` should be invoked on the leading and/or trailing edge of the wait timeout.
-     * The `func` is invoked with the last arguments provided to the debounced function.
-     * Subsequent calls to the debounced function return the result of the last `func` invocation.
-     * 
-     * Note: If `leading` and `trailing` options are `true`, `func` is invoked on the trailing
-     * edge of the timeout only if the debounced function is invoked more than once during the wait timeout.
-     * 
-     * @param {Function} func The function to debounce.
-     * @param {number} [wait=0] The number of milliseconds to delay.
-     * @param {boolean} [immediate=false] Specify invoking on the leading edge of the timeout.
-     * @returns {Function} Returns the new debounced function.
+     * Returns a debounced version of `func`. When `immediate` is true (default),
+     * `func` fires on the leading edge and subsequent calls within `wait` ms are
+     * suppressed. When false, it fires on the trailing edge after calls stop.
+     *
+     * @param {Function} func
+     * @param {number} [wait=20]
+     * @param {boolean} [immediate=true]
+     * @returns {Function}
      */
     function debounce(func, wait = 20, immediate = true) {
       var timeout;
@@ -88,10 +78,9 @@
      * We want to add the 'active' class when the image is half shown and we have not scrolled past the image.
      * We want to remove the 'active' class when the image is not half shown or we have scrolled past the image.
      * 
-     * @param {Event} event The scroll event.
      * @returns {void}
      */
-    function checkSlide( event ) {
+    function checkSlide() {
       /* Loop through each image and check where that image needs to be in order for the slide in to happen */
       sliderImages.forEach( sliderImage => {
         /* Half way through the image */
