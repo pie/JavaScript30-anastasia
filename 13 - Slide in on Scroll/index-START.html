@@ -44,6 +44,16 @@
   </div>
 
   <script>
+    /**
+     * Returns a debounced version of `func`. When `immediate` is true (default),
+     * `func` fires on the leading edge and subsequent calls within `wait` ms are
+     * suppressed. When false, it fires on the trailing edge after calls stop.
+     *
+     * @param {Function} func
+     * @param {number} [wait=20]
+     * @param {boolean} [immediate=true]
+     * @returns {Function}
+     */
     function debounce(func, wait = 20, immediate = true) {
       var timeout;
       return function() {
@@ -59,6 +69,41 @@
       };
     }
 
+    /* Select all the images that we want to slide in */
+    const sliderImages = document.querySelectorAll('.slide-in');
+
+    /**
+     * Check image position and whether to add or remove the 'active' class.
+     * The 'active' class is what triggers the slide in animation in the CSS.
+     * We want to add the 'active' class when the image is half shown and we have not scrolled past the image.
+     * We want to remove the 'active' class when the image is not half shown or we have scrolled past the image.
+     * 
+     * @returns {void}
+     */
+    function checkSlide() {
+      /* Loop through each image and check where that image needs to be in order for the slide in to happen */
+      sliderImages.forEach( sliderImage => {
+        /* Half way through the image */
+        const slideInAt = ( window.scrollY + window.innerHeight ) - sliderImage.height / 2; /* Where the bottom of the page is (scrollY) + the height of the page (innerHeight) - half the height of the image */
+        
+        /* Bottom of the image */
+        const imageBottom = sliderImage.offsetTop + sliderImage.height; /* Where the top of the image is (offsetTop) + the height of the image */
+      
+        /* Check if the image is half shown */
+        const isHalfShown = slideInAt > sliderImage.offsetTop; /* If the bottom of the page is greater than the top of the image, then the image is half shown */
+      
+        /* Check if we have scrolled past the image */
+        const isNotScrolledPast = window.scrollY < imageBottom; /* If the top of the page is less than the bottom of the image, then we have not scrolled past the image */
+      
+        /* Add or remove active class depending on if the image is half shown and we have not scrolled past the image */
+        if( isHalfShown && isNotScrolledPast ) {
+          sliderImage.classList.add('active'); /* Add the active class to the image */
+        } else {
+          sliderImage.classList.remove('active'); /* Remove the active class from the image */
+        }
+      });
+    }
+    window.addEventListener( 'scroll', debounce( checkSlide ));
   </script>
 
   <style>
