@@ -36,16 +36,28 @@
   </div>
 
 <script>
+  const DRAG_SPEED = 3;
+
   const slider = document.querySelector( '.items' );
 
   let isDown = false;
-
   let startX;
-
   let scrollLeft;
+
+  /**
+   * Stop the dragging of the slider and remove the active class
+   * 
+   * @returns {void}
+   */
+  function stopDrag() {
+    isDown = false;
+    slider.classList.remove( 'active' );
+  }
 
   // When the mouse is clicked down on the slider, we want to set isDown to true and add the active class to the slider
   slider.addEventListener( 'mousedown', ( event ) => {
+    if ( 0 !== event.button ) return;
+
     isDown = true;
     slider.classList.add( 'active' );
 
@@ -55,19 +67,13 @@
     // Get the current scroll position of the slider so we can add to it later
     scrollLeft = slider.scrollLeft;
   });
-  
+
   // When the mouse leaves the slider or is released, we want to set isDown to false and remove the active class from the slider
-  slider.addEventListener( 'mouseleave', () => {
-    isDown = false;
-    slider.classList.remove( 'active' );
-  });
-  
+  slider.addEventListener( 'mouseleave', stopDrag );
+
   // When the mouse is released, we want to set isDown to false and remove the active class from the slider
-  slider.addEventListener( 'mouseup', () => {
-    isDown = false;
-    slider.classList.remove( 'active' );
-  });
-  
+  slider.addEventListener( 'mouseup', stopDrag );
+
   // When the mouse is moved, we want to check if isDown is true and if it is, we want to scroll the slider
   slider.addEventListener( 'mousemove', ( event ) => {
     // Stop the function from running when they aren't clicking and dragging
@@ -80,9 +86,8 @@
     const x = event.pageX - slider.offsetLeft;
 
     // How far the mouse has moved from the original position
-    // Multiply the distance by 3 for faster scrolling
-    // For every pixel the mouse moves, the slider scrolls 3 pixels
-    const walk = ( x - startX ) * 3;
+    // For every pixel the mouse moves, the slider scrolls DRAG_SPEED pixels
+    const walk = ( x - startX ) * DRAG_SPEED;
 
     // Scroll the slider to the new position
     slider.scrollLeft = scrollLeft - walk;
